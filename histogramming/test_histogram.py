@@ -1,7 +1,7 @@
 from unittest import TestCase
 import pandas as pd
 import numpy as np
-from histogram.histogram import Histogram
+from histogramming.histogram import Histogram
 
 
 class TestHistogram(TestCase):

@@ -1,11 +1,22 @@
 import pandas as pd
 import numpy as np
+import pickle
+
+
+def from_pickle(path):
+    return pickle.load(path)
 
 
 class Histogram:
-    """Histogram class.
-    Errors are calculated as the square root of the sum of the square of the weights. The Sum of the squared weights
-    is kept in each bin.
+    """Histogram object.
+    A histogram is has two basic properties: bins and counts. Additionally, it might carry information about the
+    uncertainties (and a link to the original data).
+    This library was created mostly to handle histogram operations: summing, diving and fitting. Using fill methods is
+    considerably slow in comparison to other alternatives (e.g. Boost Histogram or ROOT). It is advisible to use it
+    only to perform final data treatment.
+
+    By default, errors are calculated as the square root of the sum of the square of the weights. The Sum of the squared
+    weights is kept in each bin to allow for .
 
     Attributes
     ----------
@@ -20,7 +31,7 @@ class Histogram:
         #TODO: Methods to implement the range selection
     """
 
-    def __init__(self, df=None, title=''):
+    def __init__(self, df=None, title='', axis_and_bins=None, axis=None):
         """" Default constructor.
 
         This is used mostly internally or as a copy constructor. Use from_dataframe in case you would like to create
@@ -32,7 +43,6 @@ class Histogram:
             DataFrame with the values which will be used to calculate the histogram.
         title: str
             title of the histogram
-
         """
         self.title = title
         if isinstance(df, Histogram):
@@ -84,7 +94,6 @@ class Histogram:
         if isinstance(axis, str):
             axis = [axis]
 
-        # TODO: include 0-count bins
         if not isinstance(df, pd.DataFrame):
             raise TypeError('df should be a DataFrame')
 
@@ -95,7 +104,7 @@ class Histogram:
 
         df_local['WeightSquare'] = df_local['Weight'] ** 2
 
-        grouped = df_local.groupby(by=list(axis)).sum().fillna(0.)
+        grouped = df_local.groupby(by=axis).sum().fillna(0.)
 
         # Counts are the sum of the Weights
         counts = pd.DataFrame(grouped['Weight'])
@@ -570,3 +579,7 @@ class Histogram:
             return self
         else:
             return Histogram(self).cumsum(reverse_order=reverse_order, inplace=True)
+
+    def to_pickle(self, path):
+        pickle.dump(self, path)
+
